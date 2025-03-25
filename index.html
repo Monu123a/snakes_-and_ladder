@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 Snakes & Ladders 🪜</title>
+
+</head>
+<body>
+    <h1>Snakes & Ladders</h1>
+    <button onclick="add_player()">Add Player</button>
+    <button onclick="roll_dice()">Roll the dice</button>
+    <button onclick="resetGame()">Reset Game</button>
+    <!-- placeholder -->
+
+    <div id="gameMessage"></div>
+
+    <script>
+        const Game= new Snakes_ladders();
+        // adding player 
+        function add_player(){
+            const name=prompt("Enter Your Name")
+            document.getElementById('gameMessage').innerText=Game.add_player(name)
+        }
+        // changing position
+        function roll_dice(){
+            const name=prompt("Enter Your Name")
+            document.getElementById("gameMessage").innerText=Game.move_player(name)
+        }
+
+        // reset logic
+        function resetGame() {
+            game.players = {};
+            document.getElementById("output").innerText = "Game Reset!";
+        }
+
+
+    </script>
+</body>
+</html>
