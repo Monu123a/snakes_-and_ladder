@@ -3,38 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐍 Snakes & Ladders 🪜</title>
-
+    <title>Snake and Ladder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #eee;
+            margin: 0;
+            padding: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            width: fit-content;
+            margin: 20px auto;
+            gap: 2px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            background: #fff;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            position: relative;
+        }
+        .player {
+            position: absolute;
+            bottom: 2px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            background: #333;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #555;
+        }
+    </style>
 </head>
 <body>
-    <h1>Snakes & Ladders</h1>
-    <button onclick="add_player()">Add Player</button>
-    <button onclick="roll_dice()">Roll the dice</button>
-    <button onclick="resetGame()">Reset Game</button>
-    <!-- placeholder -->
-
-    <div id="gameMessage"></div>
+    <h1>Snake and Ladder</h1>
+    <div class="board" id="board"></div>
+    <div>
+        <button onclick="rollDice('player1')">Roll Dice (Player 1)</button>
+        <button onclick="rollDice('player2')">Roll Dice (Player 2)</button>
+        <button onclick="resetGame()">Reset Game</button>
+    </div>
+    <p id="status"></p>
 
     <script>
-        const Game= new Snakes_ladders();
-        // adding player 
-        function add_player(){
-            const name=prompt("Enter Your Name")
-            document.getElementById('gameMessage').innerText=Game.add_player(name)
+        const board = document.getElementById("board");
+        let playerPositions = { player1: 0, player2: 0 };
+        const snakesLadders = { 99: 7, 70: 34, 52: 11, 25: 2, 95: 56, 6: 27, 22: 41, 44: 58, 54: 88, 78: 97 };
+
+        function createBoard() {
+            board.innerHTML = "";
+            for (let i = 100; i >= 1; i--) {
+                let cell = document.createElement("div");
+                cell.className = "cell";
+                cell.innerText = i;
+                cell.id = `cell-${i}`;
+                board.appendChild(cell);
+            }
         }
-        // changing position
-        function roll_dice(){
-            const name=prompt("Enter Your Name")
-            document.getElementById("gameMessage").innerText=Game.move_player(name)
+        
+        function updateBoard() {
+            document.querySelectorAll(".player").forEach(el => el.remove());
+            Object.entries(playerPositions).forEach(([player, pos]) => {
+                if (pos > 0) {
+                    let marker = document.createElement("div");
+                    marker.className = "player";
+                    marker.innerText = player;
+                    document.getElementById(`cell-${pos}`).appendChild(marker);
+                }
+            });
         }
 
-        // reset logic
+        function rollDice(player) {
+            let roll = Math.floor(Math.random() * 6) + 1;
+            let newPos = playerPositions[player] + roll;
+            playerPositions[player] = snakesLadders[newPos] || newPos;
+            if (playerPositions[player] > 100) playerPositions[player] -= roll;
+            document.getElementById("status").innerText = `${player} rolled ${roll}, moved to ${playerPositions[player]}`;
+            updateBoard();
+        }
+        
         function resetGame() {
-            game.players = {};
-            document.getElementById("output").innerText = "Game Reset!";
+            playerPositions = { player1: 0, player2: 0 };
+            document.getElementById("status").innerText = "Game reset!";
+            updateBoard();
         }
 
-
+        createBoard();
     </script>
 </body>
 </html>
