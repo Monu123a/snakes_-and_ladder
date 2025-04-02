@@ -17,6 +17,7 @@
             margin: 20px auto;
             border: 3px solid black;
             background: white;
+            position: relative;
         }
         .cell {
             width: 50px;
@@ -27,6 +28,7 @@
             align-items: center;
             justify-content: center;
             font-size: 14px;
+            position: relative;
         }
         .snake {
             background: pink;
@@ -44,12 +46,18 @@
         }
         .player {
             position: absolute;
-            bottom: 5px;
-            font-size: 12px;
-            font-weight: bold;
+            width: 15px;
+            height: 15px;
+            transition: all 0.5s ease;
         }
-        .player1 { color: red; }
-        .player2 { color: blue; }
+        .player1 {
+            background: red;
+            border-radius: 50%;
+        }
+        .player2 {
+            background: blue;
+            transform: rotate(45deg);
+        }
         #dice {
             font-size: 30px;
             margin: 10px;
@@ -61,14 +69,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        .moving {
-            animation: jump 0.3s;
-        }
-        @keyframes jump {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0); }
         }
         button {
             padding: 10px;
@@ -98,8 +98,10 @@
         const board = document.getElementById("board");
         const dice = document.getElementById("dice");
         let playerPositions = { player1: 0, player2: 0 };
+        let hasStarted = { player1: false, player2: false };
         const snakesLadders = { 99: 7, 70: 34, 52: 11, 25: 2, 95: 56, 6: 27, 22: 41, 44: 58, 54: 88, 78: 97 };
         const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        let players = {};
 
         function createBoard() {
             board.innerHTML = "";
@@ -112,19 +114,25 @@
                 if (snakesLadders[i] && snakesLadders[i] > i) cell.classList.add("ladder");
                 board.appendChild(cell);
             }
+            players.player1 = document.createElement("div");
+            players.player1.className = "player player1";
+            players.player2 = document.createElement("div");
+            players.player2.className = "player player2";
+            board.appendChild(players.player1);
+            board.appendChild(players.player2);
         }
 
         function updateBoard() {
-            document.querySelectorAll(".player").forEach(el => el.remove());
             Object.entries(playerPositions).forEach(([player, pos]) => {
                 if (pos > 0) {
-                    let marker = document.createElement("div");
-                    marker.className = "player " + player;
-                    marker.innerText = player;
                     let cell = document.getElementById("cell-" + pos);
-                    cell.appendChild(marker);
-                    marker.classList.add("moving");
-                    setTimeout(() => marker.classList.remove("moving"), 300);
+                    let cellRect = cell.getBoundingClientRect();
+                    let boardRect = board.getBoundingClientRect();
+                    players[player].style.left = (cellRect.left - boardRect.left + 17) + "px";
+                    players[player].style.top = (cellRect.top - boardRect.top + 17) + "px";
+                    players[player].style.display = "block";
+                } else {
+                    players[player].style.display = "none";
                 }
             });
         }
@@ -135,22 +143,32 @@
                 dice.classList.remove("spinning");
                 let roll = Math.floor(Math.random() * 6) + 1;
                 dice.innerText = diceFaces[roll - 1];
-                let newPos = playerPositions[player] + roll;
-                playerPositions[player] = snakesLadders[newPos] || newPos;
-                if (playerPositions[player] > 100) playerPositions[player] -= roll;
-                document.getElementById("status").innerText = player + " rolled " + roll + ", now at " + playerPositions[player];
-                updateBoard();
+                
+                if (!hasStarted[player] && roll === 6) {
+                    hasStarted[player] = true;
+                    document.getElementById("status").innerText = player + " rolled a 6 and can start next turn!";
+                } else if (hasStarted[player]) {
+                    let newPos = playerPositions[player] + roll;
+                    playerPositions[player] = snakesLadders[newPos] || newPos;
+                    if (playerPositions[player] > 100) playerPositions[player] -= roll;
+                    document.getElementById("status").innerText = player + " rolled " + roll + ", now at " + playerPositions[player];
+                    updateBoard();
+                } else {
+                    document.getElementById("status").innerText = player + " rolled " + roll + ", need a 6 to start!";
+                }
             }, 1000);
         }
 
         function resetGame() {
             playerPositions = { player1: 0, player2: 0 };
+            hasStarted = { player1: false, player2: false };
             document.getElementById("status").innerText = "Game reset!";
             dice.innerText = "";
             updateBoard();
         }
 
         createBoard();
+        updateBoard();
     </script>
 </body>
 </html>
