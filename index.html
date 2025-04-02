@@ -1,77 +1,108 @@
+Here's the simplified student-style code without comments:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake and Ladder</title>
+    <title>My Snake and Ladder Game</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             text-align: center;
-            background: #f8f9fa;
-            margin: 0;
+            background: lightgray;
             padding: 20px;
         }
         .board {
             display: grid;
-            grid-template-columns: repeat(10, 60px);
+            grid-template-columns: repeat(10, 50px);
             width: fit-content;
             margin: 20px auto;
-            gap: 2px;
-            border: 5px solid #333;
-            background: #fff;
-            padding: 5px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            border: 3px solid black;
+            background: white;
         }
         .cell {
-            width: 60px;
-            height: 60px;
-            background: #e3f2fd;
-            border: 1px solid #333;
+            width: 50px;
+            height: 50px;
+            background: lightblue;
+            border: 1px solid black;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            position: relative;
+            font-size: 14px;
+        }
+        .snake {
+            background: pink;
+        }
+        .snake::after {
+            content: "🐍";
+            font-size: 18px;
+        }
+        .ladder {
+            background: lightgreen;
+        }
+        .ladder::after {
+            content: "🪜";
+            font-size: 18px;
         }
         .player {
             position: absolute;
             bottom: 5px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
-            color: red;
+        }
+        .player1 { color: red; }
+        .player2 { color: blue; }
+        #dice {
+            font-size: 30px;
+            margin: 10px;
+            display: inline-block;
+        }
+        .spinning {
+            animation: spin 0.5s 2;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .moving {
+            animation: jump 0.3s;
+        }
+        @keyframes jump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
         }
         button {
-            padding: 12px 18px;
-            font-size: 18px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            background: #007bff;
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            background: blue;
             color: white;
-            border-radius: 5px;
-            transition: 0.3s;
+            border: none;
         }
         button:hover {
-            background: #0056b3;
+            background: darkblue;
         }
     </style>
 </head>
 <body>
     <h1>Snake and Ladder</h1>
     <div class="board" id="board"></div>
+    <div id="dice"></div>
     <div>
-        <button onclick="rollDice('player1')">Roll Dice (Player 1)</button>
-        <button onclick="rollDice('player2')">Roll Dice (Player 2)</button>
-        <button onclick="resetGame()">Reset Game</button>
+        <button onclick="rollDice('player1')">Roll for Player 1</button>
+        <button onclick="rollDice('player2')">Roll for Player 2</button>
+        <button onclick="resetGame()">Start Over</button>
     </div>
     <p id="status"></p>
 
     <script>
         const board = document.getElementById("board");
+        const dice = document.getElementById("dice");
         let playerPositions = { player1: 0, player2: 0 };
         const snakesLadders = { 99: 7, 70: 34, 52: 11, 25: 2, 95: 56, 6: 27, 22: 41, 44: 58, 54: 88, 78: 97 };
+        const diceFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
         function createBoard() {
             board.innerHTML = "";
@@ -79,35 +110,46 @@
                 let cell = document.createElement("div");
                 cell.className = "cell";
                 cell.innerText = i;
-                cell.id = `cell-${i}`;
+                cell.id = "cell-" + i;
+                if (snakesLadders[i] && snakesLadders[i] < i) cell.classList.add("snake");
+                if (snakesLadders[i] && snakesLadders[i] > i) cell.classList.add("ladder");
                 board.appendChild(cell);
             }
         }
-        
+
         function updateBoard() {
             document.querySelectorAll(".player").forEach(el => el.remove());
             Object.entries(playerPositions).forEach(([player, pos]) => {
                 if (pos > 0) {
                     let marker = document.createElement("div");
-                    marker.className = "player";
+                    marker.className = "player " + player;
                     marker.innerText = player;
-                    document.getElementById(`cell-${pos}`).appendChild(marker);
+                    let cell = document.getElementById("cell-" + pos);
+                    cell.appendChild(marker);
+                    marker.classList.add("moving");
+                    setTimeout(() => marker.classList.remove("moving"), 300);
                 }
             });
         }
 
         function rollDice(player) {
-            let roll = Math.floor(Math.random() * 6) + 1;
-            let newPos = playerPositions[player] + roll;
-            playerPositions[player] = snakesLadders[newPos] || newPos;
-            if (playerPositions[player] > 100) playerPositions[player] -= roll;
-            document.getElementById("status").innerText = `${player} rolled ${roll}, moved to ${playerPositions[player]}`;
-            updateBoard();
+            dice.classList.add("spinning");
+            setTimeout(() => {
+                dice.classList.remove("spinning");
+                let roll = Math.floor(Math.random() * 6) + 1;
+                dice.innerText = diceFaces[roll - 1];
+                let newPos = playerPositions[player] + roll;
+                playerPositions[player] = snakesLadders[newPos] || newPos;
+                if (playerPositions[player] > 100) playerPositions[player] -= roll;
+                document.getElementById("status").innerText = player + " rolled " + roll + ", now at " + playerPositions[player];
+                updateBoard();
+            }, 1000);
         }
-        
+
         function resetGame() {
             playerPositions = { player1: 0, player2: 0 };
             document.getElementById("status").innerText = "Game reset!";
+            dice.innerText = "";
             updateBoard();
         }
 
@@ -115,3 +157,4 @@
     </script>
 </body>
 </html>
+```
